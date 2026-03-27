@@ -1,34 +1,37 @@
-from typing import Any
-import httpx
 from mcp.server.fastmcp import FastMCP
 
+import logging
+from mcp.server.fastmcp.utilities.logging import get_logger
+
+
+from testmcp.events.tool import EventsTool
+
+
+# Server configuration
+port = 8000
+host = "127.0.0.1"
+
+
 # Initialize FastMCP server
-mcp = FastMCP("firsttest")
-
-
-@mcp.tool()
-async def get_forecast(place: str) -> str:
-    """Get weather forecast for a location.
-
-    Args:
-        place: Name of the location
-    """
-    # First get the forecast grid endpoint
-    
-    forecast = f"""
-Temperature: 10 °C
-Wind: 5 km/h NW
-Forecast: Clear skies
-"""
-        
-
-    return f"---{forecast}"
-
+mcp = FastMCP("firsttest",
+              host=host, 
+              port=port)
 
 
 def main():
-    # Initialize and run the server
+
+    to_client_logger = get_logger(name="fastmcp.server.context.to_client")
+    to_client_logger.setLevel(level=logging.INFO)
     
+    uri_tools = [
+        EventsTool
+    ]
+    
+    for tool_cls in uri_tools:
+        tool_cls.create(mcp)
+    
+
+    # Initialize and run the server
     mcp.run(transport="streamable-http")
 
 

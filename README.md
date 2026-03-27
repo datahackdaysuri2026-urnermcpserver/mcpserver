@@ -6,7 +6,7 @@ This is the repo for the challenge [Urner MCP Server](https://hack.digital-clust
 
 ## MCP Host
 
-To start the MCP Host consisting of the Open Web UI, run the following command. It's available at [http://localhost:3000](http://localhost:3000).
+To run the MCP Host, you need to have Docker Engine or [Docker Desktop](https://docs.docker.com/desktop/) installed. To start the MCP Host consisting of the Open Web UI, run the following command. It's available at [http://localhost:3000](http://localhost:3000).
 
 ```bash
 cd mcphost

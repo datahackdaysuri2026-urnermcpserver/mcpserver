@@ -6,9 +6,11 @@ This is the repo for the challenge [Urner MCP Server](https://hack.digital-clust
 
 ## MCP Host
 
-To start the MCP Host consisting of the Open Web UI, run the following command. It's available at [http://localhost:3000](http://localhost:3000).
+To run the MCP Host, you need to have Docker Engine or [Docker Desktop](https://docs.docker.com/desktop/) installed. To start the MCP Host consisting of the Open Web UI, run the following command. It's available at [http://localhost:3000](http://localhost:3000).
 
 ```bash
 cd mcphost
 docker compose up -d
 ```
+
+Go to the connections [http://localhost:3000/admin/settings/connections](http://localhost:3000/admin/settings/connections) and use the **Manage Ollama** option to add a new model to the Ollama server. You can use the following model `llama3.1:8b` or any other model available in the [Ollama Registry](https://ollama.com/registry).

@@ -3,6 +3,7 @@ from typing import Optional
 from difflib import SequenceMatcher
 
 from pydantic import BaseModel
+from pathlib import Path
 
 from datetime import datetime
 
@@ -11,6 +12,7 @@ from testmcp.base import UriMCPTool, register_as_resource, register_as_tool
 
 from testmcp.events.model import EventFeed
 
+import os
 
 class EventResponse(BaseModel):
     description: Optional[str] = None
@@ -28,7 +30,10 @@ class EventsTool(UriMCPTool):
         """ Initialize the EventsTool with the MCP server instance and load the event data."""
         # Load the event data from the JSON file
         #TODO: In a real application, this data would likely come from a database or external API rather than a static file.
-        with open("../data/uri_veranstaltungskalender.json", "r", encoding='utf-8') as f:
+
+        data_dir = Path(os.environ.get("DATA_PATH", "../data"))
+
+        with open(data_dir / "uri_veranstaltungskalender.json", "r", encoding='utf-8') as f:
             events = json.load(f)
         
         self.eventfeed = EventFeed.model_validate(events)
@@ -64,6 +69,8 @@ class EventsTool(UriMCPTool):
         events = await self._search_events(keywords=normalized_keywords, date=parsed_date, place=place)
 
         return events
+
+    
 
     #@register_as_resource("data://events")
     async def events(self) -> list[EventResponse]:
@@ -148,8 +155,8 @@ class EventsTool(UriMCPTool):
 
         return response
 
-    def _parse_date(self, date_str: str) -> Optional[datetime.date]:
-        """Parse a date string in various formats and return a datetime.date object."""
+    def _parse_date(self, date_str: str) -> str:
+        """ Parse a date string in various formats and return a formatted date string."""
         target_format = "%d.%m.%Y"  # Desired output format
         date_formats = ["%d.%m.%Y", "%d.%m", "%d %B", "%Y", "%B %Y", "%B"] # Add more formats as needed
         for fmt in date_formats:
@@ -157,4 +164,4 @@ class EventsTool(UriMCPTool):
                 return datetime.strptime(date_str, fmt).date().strftime(target_format)
             except ValueError:
                 continue
-        return datetime.today().date().strftime("%m.%Y")  # Default to today's date if parsing fails
+        return datetime.today().date().strftime("%m.%Y")  # Default to today's Month and year if parsing fails

@@ -1,1 +1,1 @@
-pixi run python -m testmcp.main
+pixi run python -m testmcp.main %*

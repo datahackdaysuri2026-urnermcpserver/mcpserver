@@ -9,6 +9,7 @@ from mcp.server.fastmcp.utilities.logging import get_logger
 
 
 from testmcp.events.tool import EventsTool
+from testmcp.kino.tool import KinoTool
 
 
 # Server configuration
@@ -28,11 +29,16 @@ def run_server() -> None:
     to_client_logger.setLevel(level=logging.INFO)
     
     uri_tools = [
-        EventsTool
+        EventsTool,
+        KinoTool
     ]
     
     for tool_cls in uri_tools:
-        tool_cls.create(mcp)
+        print(f"Registering tool: {tool_cls.__name__}")
+        try:
+            tool_cls.create(mcp)
+        except Exception as e:
+            print(f"Error registering tool {tool_cls.__name__}: {e}")
     
 
     # Initialize and run the server

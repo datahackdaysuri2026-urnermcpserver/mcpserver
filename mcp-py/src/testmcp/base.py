@@ -40,8 +40,13 @@ class UriMCPTool(abc.ABC):
             attr = getattr(instance, attr_name)
             if callable(attr) and hasattr(attr, "_is_tool"):
                 mcp.tool()(attr)
+                print(f"Registered tool method: {attr_name}")
             elif callable(attr) and hasattr(attr, "_is_resource"):
                 mcp.resource(attr._resource_uri)(attr)
+                print(f"Registered resource method: {attr_name} with URI: {attr._resource_uri}")
             elif callable(attr) and hasattr(attr, "_is_prompt"):
                 mcp.prompt()(attr)
+                print(f"Registered prompt method: {attr_name}")
+            
+                
         return instance

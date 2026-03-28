@@ -26,4 +26,4 @@ RUN mkdir -p /data
 VOLUME ["/data"]
 
 # Run the program
-CMD ["/root/.pixi/bin/pixi", "run", "python", "-m", "testmcp.main"]
+CMD ["/root/.pixi/bin/pixi", "run", "python", "-m", "testmcp.main", "--watch"]

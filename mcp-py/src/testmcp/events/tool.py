@@ -60,14 +60,14 @@ class EventsTool(UriMCPTool):
 
         Args:
             keywords: List of keywords to match against event descriptions.
-            date: Date string to match against event dates. Can be a single day in format "15.03.2026" or a month in format "März 2026".
+            date: Date string to match against event dates. It must be a single day in format "15.03.2026" or "2026-03-15".
             place: Place string to match against event locations im Kanton Uri. If place is empty: return all events regardless of place.
         """
         print(f"get_events tool called with keywords={keywords}, date={date}, place={place}")       
         #await ctx.info(f"get_events tool called with keywords={keywords}, date={date}, place={place}")
 
-        # Date can be in the format "YYYY-MM-DD" or "YYYY-MM" or "YYYY" or "März 2026" or "März" or "2026"
         parsed_date = self._parse_date(date) if date else None
+        #print(f"Parsed date: {parsed_date}")
         normalized_keywords = self._normalize_keywords(keywords)
                 
         events = await self._search_events(keywords=normalized_keywords, date=parsed_date, place=place)
@@ -82,19 +82,15 @@ class EventsTool(UriMCPTool):
             return 0.0
         return SequenceMatcher(None, text1.lower(), text2.lower()).ratio()
 
-    def _normalize_place(self, place: Optional[str]) -> Optional[str]:
+    def _normalize_place(self, place: Optional[str]) -> str:
         """Normalize place input for strict comparisons."""
         if not place:
-            return None
+            return ""
         normalized = place.strip().lower()
-        return normalized if normalized else None
+        return normalized
 
     async def _search_events(self, keywords: Optional[list[str]] = None, date: Optional[date] = None, place: Optional[str] = None) -> list[EventResponse]:
         """Search for events with strict date/place filters and fuzzy keyword ranking.
-        Args:
-            keywords: List of keywords to match against event descriptions.
-            date: Event date that must match exactly after parsing.
-            place: Event place that must match exactly (case-insensitive).
         """
 
         events = self.eventfeed.events()
@@ -127,9 +123,10 @@ class EventsTool(UriMCPTool):
                 continue
             
             # Strict place filter (case-insensitive)
-            if normalized_place:
-                if not ev_place or self._normalize_place(ev_place) != normalized_place:
-                    continue
+            if normalized_place is not None:
+                if ev_place is not None:
+                    if normalized_place not in self._normalize_place(ev_place):
+                        continue
 
             score = 1.0
 
@@ -159,6 +156,7 @@ class EventsTool(UriMCPTool):
     def _parse_date(self, date_str: str) -> date:
         """Parse a date string in various formats and return a date instance."""
         date_formats = ["%Y-%m-%d", "%d.%m.%Y", "%d.%m", "%d %B", "%Y", "%B %Y", "%B"]
+        
         for fmt in date_formats:
             try:
                 return datetime.strptime(date_str, fmt).date()

@@ -19,6 +19,12 @@ def register_as_resource(uri: str):
         return func
     return decorator
 
+def register_as_prompt():
+    """Decorator to mark a method as a prompt for FastMCP."""
+    def decorator(func):
+        func._is_prompt = True  # Mark the function with a custom attribute
+        return func
+    return decorator
 
 
 
@@ -36,4 +42,6 @@ class UriMCPTool(abc.ABC):
                 mcp.tool()(attr)
             elif callable(attr) and hasattr(attr, "_is_resource"):
                 mcp.resource(attr._resource_uri)(attr)
+            elif callable(attr) and hasattr(attr, "_is_prompt"):
+                mcp.prompt()(attr)
         return instance

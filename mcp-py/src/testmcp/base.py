@@ -29,9 +29,8 @@ def register_as_prompt():
 
 
 class UriMCPTool(abc.ABC):
-
-
-
+    """Abstract base class for MCP tools that register methods as URI handlers."""
+    
     @classmethod
     def create(cls, mcp: FastMCP) -> Self:
         """Class method to register the tool with the MCP server."""

@@ -9,6 +9,15 @@ services:
     volumes:
       - ./data:/data
 
+  mcp-rust:
+    build:
+      context: ./mcp-rust
+      dockerfile: Dockerfile
+    container_name: mcp-rust
+    restart: unless-stopped
+    volumes:
+      - ./data:/data
+
   ollama:
     image: ollama/ollama:latest
     container_name: ollama

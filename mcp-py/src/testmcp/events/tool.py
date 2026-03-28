@@ -30,7 +30,6 @@ class EventsTool(UriMCPTool):
         #TODO: In a real application, this data would likely come from a database or external API rather than a static file.
         
         data_dir = Path(os.environ.get("DATA_PATH", "../data"))
-        #data_dir = Path("../data")
 
         with open(data_dir / "uri_veranstaltungskalender.json", "r", encoding='utf-8') as f:
             events = json.load(f)
@@ -63,11 +62,15 @@ class EventsTool(UriMCPTool):
             date: Date string to match against event dates. It must be a single day in format "15.03.2026" or "2026-03-15".
             place: Place string to match against event locations im Kanton Uri. If place is empty: return all events regardless of place.
         """
+        
+        # TODO: Keyword filter löschen --> LLM das Filtern überlassen
+
+
         print(f"get_events tool called with keywords={keywords}, date={date}, place={place}")       
         #await ctx.info(f"get_events tool called with keywords={keywords}, date={date}, place={place}")
 
         parsed_date = self._parse_date(date) if date else None
-        #print(f"Parsed date: {parsed_date}")
+
         normalized_keywords = self._normalize_keywords(keywords)
                 
         events = await self._search_events(keywords=normalized_keywords, date=parsed_date, place=place)

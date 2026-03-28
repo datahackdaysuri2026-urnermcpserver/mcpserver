@@ -60,7 +60,6 @@ class KinoTool(UriMCPTool):
         """
         print(f"get_kinoprogamm tool called with keywords={keywords}, date={date}")       
         
-        # Date can be in the format "YYYY-MM-DD" or "YYYY-MM" or "YYYY" or "März 2026" or "März" or "2026"
         parsed_date = self._parse_date(date) if date else None
         normalized_keywords = self._normalize_keywords(keywords)
                 

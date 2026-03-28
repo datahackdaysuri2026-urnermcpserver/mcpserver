@@ -9,7 +9,6 @@ from datetime import datetime
 
 from testmcp.base import UriMCPTool, register_as_resource, register_as_tool
 
-
 from testmcp.events.model import EventFeed
 
 import os
@@ -30,7 +29,7 @@ class EventsTool(UriMCPTool):
         """ Initialize the EventsTool with the MCP server instance and load the event data."""
         # Load the event data from the JSON file
         #TODO: In a real application, this data would likely come from a database or external API rather than a static file.
-
+        
         data_dir = Path(os.environ.get("DATA_PATH", "../data"))
         #data_dir = Path("../data")
 
@@ -60,11 +59,10 @@ class EventsTool(UriMCPTool):
         """
         Get events that contain specific keywords for a specific date and place.
 
-                Args:
+        Args:
             keywords: List of keywords to match against event descriptions.
-            date: Date string to match against event dates. Can be in various formats (e.g., "2026-03-15", "März 2026"). "%d.%m.%Y", "%d.%m", "%d %B", "%Y", "%B %Y", "%B"
-            place: Place string to match against event locations im Kanton Uri.
-        
+            date: Date string to match against event dates. Can be a single day in format "15.03.2026" or a month in format "März 2026".
+            place: Place string to match against event locations im Kanton Uri. If place is empty: return all events regardless of place.
         """
         print(f"get_events tool called with keywords={keywords}, date={date}, place={place}")       
         #await ctx.info(f"get_events tool called with keywords={keywords}, date={date}, place={place}")
@@ -110,16 +108,25 @@ class EventsTool(UriMCPTool):
             return 0.0
         return SequenceMatcher(None, text1.lower(), text2.lower()).ratio()
 
+    def _normalize_place(self, place: Optional[str]) -> Optional[str]:
+        """Normalize place input for strict comparisons."""
+        if not place:
+            return None
+        normalized = place.strip().lower()
+        return normalized if normalized else None
+
     async def _search_events(self, keywords: Optional[list[str]] = None, date: Optional[str] = None, place: Optional[str] = None) -> list[EventResponse]:
-        """Search for events using fuzzy matching with ranking based on keywords, date, and place.
+        """Search for events with strict date/place filters and fuzzy keyword ranking.
         Args:
             keywords: List of keywords to match against event descriptions.
-            date: Date string to match against event dates. Can be in various formats (e.g., "2026-03-15", "März 2026"). "%d.%m.%Y", "%d.%m", "%d %B", "%Y", "%B %Y", "%B"
-            place: Place string to match against event locations.
+            date: Event date that must match exactly after parsing.
+            place: Event place that must match exactly (case-insensitive).
         """
 
         events = self.eventfeed.events()
         scored_events: list[tuple[float, EventResponse]] = []
+        keyword_threshold = 0.35
+        normalized_place = self._normalize_place(place)
 
         for ev in events:
             details = ev.offerDetail[0] if ev.offerDetail else None
@@ -131,34 +138,31 @@ class EventsTool(UriMCPTool):
             info_url = details.detailUrl if details else None
             organisation = ev.bpName if ev.bpName else None
 
-            score = 0.0
+            # Strict date filter
+            if date and ev_date != date:
+                continue
 
-            # Score keywords matches
+            # Strict place filter (case-insensitive)
+            if normalized_place:
+                if not ev_place or self._normalize_place(ev_place) != normalized_place:
+                    continue
+
+            score = 1.0
+
+            # Fuzzy keywords only influence ranking and inclusion when provided.
             if keywords:
                 keyword_scores = []
+                searchable_fields = [desc or "", organisation or ""]
                 for keyword in keywords:
-                    if desc:
-                        match_score = self._fuzzy_match(keyword, desc)
-                        keyword_scores.append(match_score)
-                    else:
-                        keyword_scores.append(0.0)
-                # Use the max score for each keyword, then average
-                if keyword_scores:
-                    score += sum(keyword_scores) / len(keyword_scores) * 0.6  # 60% weight on keywords
+                    best_match = max((self._fuzzy_match(keyword, field) for field in searchable_fields), default=0.0)
+                    keyword_scores.append(best_match)
 
-            # Score place match
-            if place and ev_place:
-                place_score = self._fuzzy_match(place, ev_place)
-                score += place_score * 0.2  # 20% weight on place
+                avg_keyword_score = sum(keyword_scores) / len(keyword_scores) if keyword_scores else 0.0
+                if avg_keyword_score < keyword_threshold:
+                    continue
+                score = avg_keyword_score
 
-            # Score date match
-            if date and ev_date:
-                date_score = self._fuzzy_match(date, ev_date)
-                score += date_score * 0.2  # 20% weight on date
-
-            # Only include events with non-zero score
-            if score > 0:
-                scored_events.append((score, EventResponse(description=desc, date=ev_date, time=ev_time, place=ev_place, info_url=info_url, organisation=organisation)))
+            scored_events.append((score, EventResponse(description=desc, date=ev_date, time=ev_time, place=ev_place, info_url=info_url, organisation=organisation)))
 
         # Sort by score in descending order
         scored_events.sort(key=lambda x: x[0], reverse=True)
@@ -177,4 +181,5 @@ class EventsTool(UriMCPTool):
                 return datetime.strptime(date_str, fmt).date().strftime(target_format)
             except ValueError:
                 continue
-        return datetime.today().date().strftime("%m.%Y")  # Default to today's Month and year if parsing fails
+        
+        return datetime.today().date().strftime("%d.%m.%Y")  # Default to today

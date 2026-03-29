@@ -2,3 +2,6 @@ __pycache__
 .pixi
 .mypy_cache
 .DS_Store
+
+# Rust
+target

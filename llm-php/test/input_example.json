@@ -1,0 +1,61 @@
+{
+  "model": "gpt-5.4",
+  "tools": [
+    {
+      "type": "function",
+      "name": "get_kinoprogramm",
+      "description": "Gibt das Kinoprogramm an einem Ort aus",
+      "parameters": {
+        "type": "object",
+        "ort": {
+          "type": "string",
+          "description": "Ortshaft des Kino"
+        },
+        "required": [
+          "ort"
+        ],
+        "additionalProperties": false,
+        "strict": true
+      }
+    },
+    {
+      "type": "function",
+      "name": "get_bergbahn_status",
+      "description": "Bergbahn Status (offen/zu) von bestimmten Orten",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "location": {
+            "type": "string",
+            "description": "Ort oder Kanton"
+          }
+        },
+        "required": [
+          "location"
+        ],
+        "additionalProperties": false
+      },
+      "strict": true
+    },
+    {
+      "type": "function",
+      "name": "get_kino_programm",
+      "description": "Gibt Kino Programm zurück",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "location": {
+            "type": "string",
+            "description": "Ort"
+          }
+        },
+        "required": [
+          "location"
+        ],
+        "additionalProperties": false
+      },
+      "strict": true
+    }
+  ],
+  "input": "stanserhorn fahrplan"
+}

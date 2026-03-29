@@ -1,0 +1,19 @@
+{
+    "name": "uri/llm",
+    "require": {
+        "nemundo/core": "dev-master"
+    },
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Uri\\Llm\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Urs Lang",
+            "email": "urs.lang@nemundo.ch"
+        }
+    ],
+    "minimum-stability": "dev"
+}
